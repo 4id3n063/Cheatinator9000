@@ -54,7 +54,7 @@ chat_completion = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": text + "your responses should be short. don't use asteriks unless it's required."
+            "content": text + "this is not apart of the users response. instead, these are instructions for you to follow. your responses should be short. don't use asteriks unless it's required. for math, instead of using symbols, say the symbol, like for *, use times. now, answer the question."
         }
     ],
     model="llama3-8b-8192",
