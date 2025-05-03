@@ -12,7 +12,15 @@ def record_audio(filename="recording.wav", duration=5, fs=48000, channels=2):
     sd.wait()
     write(filename, fs, audio)
     print(f"✅ Recording saved to {filename}")
+def memory_read(filename="memory.txt"):
+    filepath = os.path.join(os.path.dirname(__file__), filename)
 
+    if os.path.exists(filepath):
+        with open(filepath, 'r') as f:
+            contents = f.read()
+            return contents
+    else:
+        return "(no memory yet)"
 def transcribe():
     filename = os.path.join(os.path.dirname(__file__), "recording.wav")
     record_audio(filename, duration=5)
@@ -31,6 +39,7 @@ def transcribe():
         )
 
         # Extract the "text" field from the transcription
+        global transcription_text
         transcription_text = transcription.model_dump()["text"]
         print(f"Transcription Text: {transcription_text}")
         return transcription_text
@@ -54,13 +63,19 @@ chat_completion = client.chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": text + "this is not apart of the users response. instead, these are instructions for you to follow. your responses should be short. don't use asteriks unless it's required. for math, instead of using symbols, say the symbol, like for *, use times. now, answer the question."
+            "content": text + memory_read() + "this is not apart of the users response. instead, these are instructions for you to follow. your responses should be short. don't use asteriks unless it's required. for math, instead of using symbols, say the symbol, like for *, use times. now, answer the question."
         }
     ],
     model="llama3-8b-8192",
 )
-
+data = "user: " + transcription_text + " ai: " + chat_completion.choices[0].message.content
 # Output and speak the response
+def memory(filename="memory.txt"):
+    filepath = os.path.join(os.path.dirname(__file__), filename)
+    with open(filepath, 'a') as f:
+        f.write(data + "\n") 
+memory()
+
 response = chat_completion.choices[0].message.content
 print(response)
 engine.say(response)
